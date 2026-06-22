@@ -1,16 +1,16 @@
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
-    #[error("Failed to load config: {0}")]
-    ConfigLoad(#[source] figment::Error),
-
     #[error("Invalid config: {0}")]
     InvalidConfig(String),
 
-    #[error("Failed to create Tokio runtime: {0}")]
-    Runtime(#[source] std::io::Error),
+    #[error(transparent)]
+    ConfigLoad(#[from] figment::Error),
 
-    #[error("Failed to build API client: {0}")]
-    ClientBuild(#[source] reqwest::Error),
+    #[error(transparent)]
+    Runtime(#[from] std::io::Error),
+
+    #[error(transparent)]
+    ClientBuild(#[from] reqwest::Error),
 
     #[error("Request to {url} failed: {source}")]
     Request {
@@ -33,6 +33,15 @@ pub enum AppError {
         #[source]
         source: serde_json::Error,
     },
+
+    #[error(transparent)]
+    ImageDecode(#[from] image::ImageError),
+
+    #[error(transparent)]
+    BadIcon(#[from] tray_icon::BadIcon),
+
+    #[error(transparent)]
+    TrayIcon(#[from] tray_icon::Error),
 }
 
 pub type AppResult<T> = Result<T, AppError>;

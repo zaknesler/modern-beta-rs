@@ -1,7 +1,7 @@
 use crate::{
     api::{self, ApiClient},
     error::{AppError, AppResult},
-    event::AppEvent,
+    state::AppEvent,
     state::{AppState, SharedAppState},
 };
 use std::thread;

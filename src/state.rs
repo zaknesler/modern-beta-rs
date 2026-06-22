@@ -13,24 +13,6 @@ pub struct AppState {
     pub weather_text: Option<String>,
 }
 
-impl AppState {
-    pub fn player_count(&self) -> Option<u32> {
-        self.player_count
-    }
-
-    pub fn has_loaded_players(&self) -> bool {
-        self.player_count.is_some()
-    }
-
-    pub fn player_names(&self) -> &[String] {
-        &self.player_names
-    }
-
-    pub fn weather_text(&self) -> Option<&str> {
-        self.weather_text.as_deref()
-    }
-}
-
 impl SharedAppState {
     pub fn new(initial_state: AppState) -> Self {
         Self(Arc::new(Mutex::new(initial_state)))
@@ -51,4 +33,9 @@ impl SharedAppState {
 
         *state = updated;
     }
+}
+
+pub enum AppEvent {
+    Menu(tray_icon::menu::MenuEvent),
+    StateUpdated(AppState),
 }

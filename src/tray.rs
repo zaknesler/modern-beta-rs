@@ -1,4 +1,4 @@
-use crate::{event::AppEvent, state::AppState};
+use crate::{error::AppResult, state::AppEvent, state::AppState};
 use std::path::Path;
 use tao::{
     event::Event,
@@ -40,7 +40,6 @@ pub struct TrayApp {
     menu: Menu,
     fave_players_submenu: Submenu,
     players_submenu: Submenu,
-    player_items: Vec<MenuItem>,
     weather_item: MenuItem,
     quit_item: MenuItem,
     tray_icon: Option<TrayIcon>,
@@ -67,7 +66,6 @@ impl TrayApp {
             menu,
             fave_players_submenu,
             players_submenu,
-            player_items: Vec::new(),
             weather_item,
             quit_item,
             tray_icon: None,
@@ -78,20 +76,16 @@ impl TrayApp {
         tray_app
     }
 
-    fn initialize(&mut self) -> Result<(), String> {
-        let icon = load_icon(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/icon.png")))?;
+    fn initialize(&mut self) -> AppResult<()> {
+        let icon = load_icon(&Path::new(env!("CARGO_MANIFEST_DIR")).join("icon.png"))?;
 
-        let mut builder = TrayIconBuilder::new()
+        let builder = TrayIconBuilder::new()
             .with_menu(Box::new(self.menu.clone()))
             .with_tooltip("Modern Beta")
-            .with_icon(icon);
+            .with_icon(icon)
+            .with_title(tray_title(&self.state));
 
-        #[cfg(target_os = "macos")]
-        {
-            builder = builder.with_title(tray_title(&self.state));
-        }
-
-        self.tray_icon = Some(builder.build().map_err(|err| err.to_string())?);
+        self.tray_icon = Some(builder.build()?);
         Ok(())
     }
 
@@ -111,7 +105,6 @@ impl TrayApp {
         self.weather_item.set_text(weather_menu_text(&self.state));
         self.refresh_players_submenus();
 
-        #[cfg(target_os = "macos")]
         if let Some(tray_icon) = self.tray_icon.as_ref() {
             tray_icon.set_title(Some(tray_title(&self.state)));
         }
@@ -120,28 +113,24 @@ impl TrayApp {
     fn clear_players_submenus(&mut self) {
         while self.players_submenu.remove_at(0).is_some() {}
         while self.fave_players_submenu.remove_at(0).is_some() {}
-        self.player_items.clear();
     }
 
     fn refresh_players_submenus(&mut self) {
         self.clear_players_submenus();
 
-        if self.state.player_names().is_empty() {
+        if self.state.player_names.is_empty() {
             let placeholder = MenuItem::new(players_placeholder_text(&self.state), false, None);
             let _ = self.players_submenu.append(&placeholder);
-            self.player_items.push(placeholder.clone());
             let _ = self.fave_players_submenu.append(&placeholder);
-            self.player_items.push(placeholder);
             return;
         }
 
-        let mut player_names = self.state.player_names().to_vec();
+        let mut player_names = self.state.player_names.clone();
         player_names.sort_unstable_by_key(|name| name.to_ascii_lowercase());
 
         for player_name in player_names {
             let item = MenuItem::new(&player_name, false, None);
             let _ = self.players_submenu.append(&item);
-            self.player_items.push(item);
 
             if self.state.config.favorite_players.contains(&player_name) {
                 let item = MenuItem::new(&player_name, false, None);
@@ -152,7 +141,7 @@ impl TrayApp {
 }
 
 fn players_submenu_title(state: &AppState) -> String {
-    match state.player_count() {
+    match state.player_count {
         Some(count) => format!("Online players ({count})"),
         None => "Online players".to_string(),
     }
@@ -172,11 +161,11 @@ fn fave_players_submenu_title(state: &AppState) -> String {
 }
 
 fn players_placeholder_text(state: &AppState) -> String {
-    if !state.has_loaded_players() {
+    if state.player_count.is_none() {
         return "Loading...".to_string();
     }
 
-    match state.player_count() {
+    match state.player_count {
         Some(0) => "No players online".to_string(),
         Some(_) => "Names unavailable".to_string(),
         None => "Loading...".to_string(),
@@ -184,27 +173,23 @@ fn players_placeholder_text(state: &AppState) -> String {
 }
 
 fn weather_menu_text(state: &AppState) -> String {
-    match state.weather_text() {
+    match &state.weather_text {
         Some(weather) => format!("Weather: {weather}"),
         None => "Weather: --".to_string(),
     }
 }
 
-#[cfg(target_os = "macos")]
 fn tray_title(state: &AppState) -> String {
-    match state.player_count() {
+    match state.player_count {
         Some(count) => count.to_string(),
         None => "--".to_string(),
     }
 }
 
-fn load_icon(path: &Path) -> Result<tray_icon::Icon, String> {
-    let image = image::open(path)
-        .map_err(|err| format!("failed to open icon {}: {err}", path.display()))?
-        .into_rgba8();
+fn load_icon(path: &Path) -> AppResult<tray_icon::Icon> {
+    let image = image::open(path)?.into_rgba8();
     let (width, height) = image.dimensions();
     let rgba = image.into_raw();
 
-    tray_icon::Icon::from_rgba(rgba, width, height)
-        .map_err(|err| format!("failed to build icon {}: {err}", path.display()))
+    tray_icon::Icon::from_rgba(rgba, width, height).map_err(|err| err.into())
 }

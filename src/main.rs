@@ -1,7 +1,6 @@
 mod api;
 mod config;
 mod error;
-mod event;
 mod state;
 mod tray;
 mod worker;
@@ -22,14 +21,13 @@ fn main() {
         }
     };
 
-    let mut app_state = state::AppState::default();
-
-    app_state.config = config;
-
-    let shared_state = state::SharedAppState::new(app_state);
+    let shared_state = state::SharedAppState::new(state::AppState {
+        config,
+        ..Default::default()
+    });
     let initial_state = shared_state.current();
 
-    let event_loop = EventLoopBuilder::<event::AppEvent>::with_user_event().build();
+    let event_loop = EventLoopBuilder::<state::AppEvent>::with_user_event().build();
     let event_proxy = event_loop.create_proxy();
 
     tray::install_menu_event_handler(event_proxy.clone());
