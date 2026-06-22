@@ -49,9 +49,10 @@ fn run_worker(
             let new_state = match tokio::try_join!(api.get_online_players(), api.get_world()) {
                 Ok((players, world)) => AppState {
                     config: current_state.config.clone(),
-                    player_count: Some(players.count),
-                    player_names: players.names.unwrap_or_default(),
-                    weather_text: Some(api::weather_text(&world)),
+                    data: Some(crate::state::ResponseData {
+                        online_players: players,
+                        world,
+                    }),
                 },
                 Err(err) => {
                     warn!(error = %err, "api fetch failed; keeping last successful state");

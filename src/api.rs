@@ -95,13 +95,3 @@ impl ApiClient {
         serde_json::from_str(&body).map_err(|source| AppError::Decode { url, body, source })
     }
 }
-
-pub fn weather_text(world: &WorldResponse) -> String {
-    if world.thundering {
-        "Thunderstorm".to_string()
-    } else if world.storming {
-        "Rain".to_string()
-    } else {
-        "Clear".to_string()
-    }
-}

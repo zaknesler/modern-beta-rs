@@ -1,4 +1,8 @@
-use crate::{error::AppResult, state::AppEvent, state::AppState};
+use crate::{
+    api::WorldResponse,
+    error::AppResult,
+    state::{AppEvent, AppState},
+};
 use std::path::Path;
 use tao::{
     event::Event,
@@ -119,69 +123,81 @@ impl TrayApp {
     fn refresh_players_submenus(&mut self) {
         self.clear_players_submenus();
 
-        if self.state.player_names.is_empty() {
-            let placeholder = MenuItem::new(players_placeholder_text(&self.state), false, None);
-            let _ = self.players_submenu.append(&placeholder);
-            let _ = self.fave_players_submenu.append(&placeholder);
-            return;
-        }
+        if let Some(data) = self.state.data.as_ref() {
+            if data.online_players.count == 0 {
+                let placeholder = MenuItem::new(players_placeholder_text(&self.state), false, None);
+                let _ = self.players_submenu.append(&placeholder);
+                let _ = self.fave_players_submenu.append(&placeholder);
+                return;
+            }
 
-        let mut player_names = self.state.player_names.clone();
-        player_names.sort_unstable_by_key(|name| name.to_ascii_lowercase());
+            let mut player_names = data.online_players.names.clone().expect("should exist");
+            player_names.sort_unstable_by_key(|name| name.to_ascii_lowercase());
 
-        for player_name in player_names {
-            let item = MenuItem::new(&player_name, false, None);
-            let _ = self.players_submenu.append(&item);
-
-            if self.state.config.favorite_players.contains(&player_name) {
+            for player_name in player_names {
                 let item = MenuItem::new(&player_name, false, None);
-                let _ = self.fave_players_submenu.append(&item);
+                let _ = self.players_submenu.append(&item);
+
+                if self.state.config.favorite_players.contains(&player_name) {
+                    let item = MenuItem::new(&player_name, false, None);
+                    let _ = self.fave_players_submenu.append(&item);
+                }
             }
         }
     }
 }
 
 fn players_submenu_title(state: &AppState) -> String {
-    match state.player_count {
+    match state.data.as_ref().map(|data| data.online_players.count) {
         Some(count) => format!("Online players ({count})"),
         None => "Online players".to_string(),
     }
 }
 
 fn fave_players_submenu_title(state: &AppState) -> String {
-    let online_favorites = state
-        .player_names
-        .iter()
-        .filter(|&name| state.config.favorite_players.contains(name))
-        .count();
-
-    match (state.config.favorite_players.is_empty(), online_favorites) {
-        (true, _) => "Favorite players".to_string(),
-        (false, count) => format!("Favorite players ({count})"),
+    if state.config.favorite_players.is_empty() {
+        return "Favorite players".to_string();
     }
+
+    let online_favorites = state.data.as_ref().map_or(0, |data| {
+        data.online_players.names.as_ref().map_or(0, |names| {
+            names
+                .iter()
+                .filter(|name| state.config.favorite_players.contains(*name))
+                .count()
+        })
+    });
+
+    format!("Favorite players ({online_favorites})")
 }
 
 fn players_placeholder_text(state: &AppState) -> String {
-    if state.player_count.is_none() {
-        return "Loading...".to_string();
-    }
-
-    match state.player_count {
-        Some(0) => "No players online".to_string(),
-        Some(_) => "Names unavailable".to_string(),
-        None => "Loading...".to_string(),
+    match state.data.as_ref() {
+        None => return "Loading...".to_string(),
+        Some(data) => match data.online_players.count {
+            0 => "No players online".to_string(),
+            _ => "Names unavailable".to_string(),
+        },
     }
 }
 
 fn weather_menu_text(state: &AppState) -> String {
-    match &state.weather_text {
-        Some(weather) => format!("Weather: {weather}"),
-        None => "Weather: --".to_string(),
+    match state.data.clone().map(|data| data.world) {
+        Some(WorldResponse {
+            storming: true,
+            thundering: false,
+        }) => format!("Weather: raining"),
+        Some(WorldResponse {
+            storming: false,
+            thundering: true,
+        }) => format!("Weather: thunderstorm"),
+        Some(_) => format!("Weather: clear"),
+        _ => "Weather: --".to_string(),
     }
 }
 
 fn tray_title(state: &AppState) -> String {
-    match state.player_count {
+    match state.data.as_ref().map(|data| data.online_players.count) {
         Some(count) => count.to_string(),
         None => "--".to_string(),
     }

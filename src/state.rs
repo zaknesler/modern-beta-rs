@@ -8,9 +8,13 @@ pub struct SharedAppState(Arc<Mutex<AppState>>);
 #[derive(Clone, Debug, Default)]
 pub struct AppState {
     pub config: AppConfig,
-    pub player_count: Option<u32>,
-    pub player_names: Vec<String>,
-    pub weather_text: Option<String>,
+    pub data: Option<ResponseData>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ResponseData {
+    pub online_players: crate::api::OnlinePlayersResponse,
+    pub world: crate::api::WorldResponse,
 }
 
 impl SharedAppState {
