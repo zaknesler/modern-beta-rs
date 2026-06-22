@@ -1,14 +1,50 @@
-#![allow(unused)]
-
 mod api;
+mod config;
+mod error;
+mod event;
+mod state;
 mod tray;
+mod worker;
 
-#[tokio::main]
-async fn main() -> api::ApiResult<()> {
-    let players = api::get_players().await?;
-    dbg!(&players);
+use std::process;
+use tao::event_loop::EventLoopBuilder;
+use tracing::error;
+use tracing_subscriber::EnvFilter;
 
-    tray::run_menu();
+fn main() {
+    init_tracing();
 
-    Ok(())
+    let config = match config::AppConfig::load() {
+        Ok(config) => config,
+        Err(err) => {
+            error!(error = %err, "failed to load application config");
+            process::exit(1);
+        }
+    };
+
+    let mut app_state = state::AppState::default();
+
+    app_state.config = config;
+
+    let shared_state = state::SharedAppState::new(app_state);
+    let initial_state = shared_state.current();
+
+    let event_loop = EventLoopBuilder::<event::AppEvent>::with_user_event().build();
+    let event_proxy = event_loop.create_proxy();
+
+    tray::install_menu_event_handler(event_proxy.clone());
+
+    let tray_app = tray::TrayApp::new(initial_state);
+    worker::spawn_worker(shared_state, event_proxy);
+
+    tray::run(event_loop, tray_app);
+}
+
+fn init_tracing() {
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter(env_filter)
+        .with_target(false)
+        .try_init();
 }
