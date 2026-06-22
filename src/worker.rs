@@ -39,10 +39,7 @@ fn run_worker(
     runtime.block_on(async move {
         let mut current_state = shared_state.current();
 
-        let api = ApiClient::new(
-            current_state.config.api_key.clone(),
-            current_state.config.world_name.clone(),
-        )?;
+        let api = ApiClient::new(current_state.config.clone())?;
         let mut interval = tokio::time::interval(current_state.config.refresh_interval());
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 

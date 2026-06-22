@@ -77,7 +77,8 @@ impl TrayApp {
     }
 
     fn initialize(&mut self) -> AppResult<()> {
-        let icon = load_icon(&Path::new(env!("CARGO_MANIFEST_DIR")).join("icon.png"))?;
+        let icon_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("icon.png");
+        let icon = load_icon(&icon_path)?;
 
         let builder = TrayIconBuilder::new()
             .with_menu(Box::new(self.menu.clone()))

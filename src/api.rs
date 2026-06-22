@@ -1,11 +1,14 @@
-use crate::error::{AppError, AppResult};
+use crate::{
+    config::AppConfig,
+    error::{AppError, AppResult},
+};
 
 const API_BASE_URL: &str = "https://api.modernbeta.org/api/v1";
 
 #[derive(Clone)]
 pub struct ApiClient {
+    config: AppConfig,
     client: reqwest::Client,
-    world_name: String,
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -21,11 +24,11 @@ pub struct WorldResponse {
 }
 
 impl ApiClient {
-    pub fn new(api_key: String, world_name: String) -> AppResult<Self> {
+    pub fn new(config: AppConfig) -> AppResult<Self> {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             "X-API-Key",
-            reqwest::header::HeaderValue::from_str(&api_key).map_err(|_| {
+            reqwest::header::HeaderValue::from_str(&config.api_key).map_err(|_| {
                 AppError::InvalidConfig("`api_key` contains invalid header characters".to_string())
             })?,
         );
@@ -39,7 +42,7 @@ impl ApiClient {
             .build()
             .map_err(AppError::ClientBuild)?;
 
-        Ok(Self { client, world_name })
+        Ok(Self { config, client })
     }
 
     pub async fn get_online_players(&self) -> AppResult<OnlinePlayersResponse> {
@@ -68,7 +71,7 @@ impl ApiClient {
     }
 
     pub async fn get_world(&self) -> AppResult<WorldResponse> {
-        let url = format!("{API_BASE_URL}/worlds/{}", self.world_name);
+        let url = format!("{API_BASE_URL}/worlds/{}", self.config.world_name);
         let response = self
             .client
             .get(&url)
