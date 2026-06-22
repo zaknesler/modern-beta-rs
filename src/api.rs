@@ -13,7 +13,7 @@ pub struct ApiClient {
 
 #[derive(Clone, Debug, serde::Deserialize)]
 pub struct OnlinePlayersResponse {
-    pub count: u32,
+    pub count: usize,
     pub names: Option<Vec<String>>,
 }
 
@@ -21,6 +21,18 @@ pub struct OnlinePlayersResponse {
 pub struct WorldResponse {
     pub storming: bool,
     pub thundering: bool,
+}
+
+impl WorldResponse {
+    pub fn weather_state(&self) -> &'static str {
+        if self.thundering {
+            "thunderstorm"
+        } else if self.storming {
+            "raining"
+        } else {
+            "clear"
+        }
+    }
 }
 
 impl ApiClient {

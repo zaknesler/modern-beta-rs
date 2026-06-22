@@ -1,5 +1,5 @@
 use crate::{
-    api::{self, ApiClient},
+    api::ApiClient,
     error::{AppError, AppResult},
     state::AppEvent,
     state::{AppState, SharedAppState},
