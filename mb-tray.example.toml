@@ -1,0 +1,5 @@
+world_name = "world"
+refresh_interval_secs = 30
+
+api_key = ""
+favorite_players = []
