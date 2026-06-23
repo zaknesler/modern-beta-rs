@@ -1,5 +1,4 @@
 use crate::{
-    api::ApiClient,
     error::{AppError, AppResult},
     state::AppEvent,
     state::{AppState, SharedAppState},
@@ -39,7 +38,10 @@ fn run_worker(
     runtime.block_on(async move {
         let mut current_state = shared_state.current();
 
-        let api = ApiClient::new(current_state.config.clone())?;
+        let api = modern_beta_api::ApiClient::new(modern_beta_api::ClientConfig {
+            api_key: current_state.config.api_key.clone(),
+            world_name: current_state.config.world_name.clone(),
+        })?;
         let mut interval = tokio::time::interval(current_state.config.refresh_interval());
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 

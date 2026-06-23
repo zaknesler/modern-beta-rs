@@ -17,8 +17,8 @@ pub struct AppState {
 
 #[derive(Clone, Debug)]
 pub struct ResponseData {
-    pub online_players: crate::api::OnlinePlayersResponse,
-    pub world: crate::api::WorldResponse,
+    pub online_players: modern_beta_api::OnlinePlayersResponse,
+    pub world: modern_beta_api::WorldResponse,
 }
 
 pub enum OnlinePlayersState {
@@ -56,7 +56,7 @@ impl AppState {
         }
     }
 
-    pub fn world(&self) -> Option<&crate::api::WorldResponse> {
+    pub fn world(&self) -> Option<&modern_beta_api::WorldResponse> {
         self.data.as_ref().map(|data| &data.world)
     }
 }

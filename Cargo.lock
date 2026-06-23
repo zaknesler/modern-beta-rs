@@ -1615,13 +1615,12 @@ dependencies = [
 
 [[package]]
 name = "mb-tray"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "figment",
  "image",
- "reqwest",
+ "modern-beta-api",
  "serde",
- "serde_json",
  "tao",
  "thiserror 2.0.18",
  "tokio",
@@ -1670,6 +1669,16 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "modern-beta-api"
+version = "0.0.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
