@@ -1,6 +1,10 @@
+use crate::config::AppConfig;
 use std::sync::{Arc, Mutex};
 
-use crate::config::AppConfig;
+pub enum AppEvent {
+    Menu(tray_icon::menu::MenuEvent),
+    StateUpdated(AppState),
+}
 
 #[derive(Clone, Default)]
 pub struct SharedAppState(Arc<Mutex<AppState>>);
@@ -25,7 +29,7 @@ pub enum OnlinePlayersState {
 }
 
 impl AppState {
-    pub fn player_count(&self) -> Option<usize> {
+    pub fn online_players_count(&self) -> Option<u32> {
         self.data.as_ref().map(|data| data.online_players.count)
     }
 
@@ -40,13 +44,15 @@ impl AppState {
         }
     }
 
-    pub fn online_favorite_count(&self) -> usize {
+    pub fn online_favorite_players_count(&self) -> Option<usize> {
         match self.online_players() {
-            OnlinePlayersState::Loaded(names) => names
-                .iter()
-                .filter(|name| self.config.favorite_players.contains(*name))
-                .count(),
-            _ => 0,
+            OnlinePlayersState::Loaded(names) => Some(
+                names
+                    .iter()
+                    .filter(|name| self.config.favorite_players.contains(*name))
+                    .count(),
+            ),
+            _ => None,
         }
     }
 
@@ -75,9 +81,4 @@ impl SharedAppState {
 
         *state = updated;
     }
-}
-
-pub enum AppEvent {
-    Menu(tray_icon::menu::MenuEvent),
-    StateUpdated(AppState),
 }

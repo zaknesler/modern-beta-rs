@@ -151,18 +151,17 @@ impl TrayApp {
 }
 
 fn players_submenu_title(state: &AppState) -> String {
-    match state.player_count() {
+    match state.online_players_count() {
         Some(count) => format!("Online players ({count})"),
         None => "Online players".to_string(),
     }
 }
 
 fn fave_players_submenu_title(state: &AppState) -> String {
-    if state.config.favorite_players.is_empty() {
-        return "Favorite players".to_string();
+    match state.online_favorite_players_count() {
+        Some(count) => format!("Favorite players ({count})"),
+        None => "Favorite players".to_string(),
     }
-
-    format!("Favorite players ({})", state.online_favorite_count())
 }
 
 fn players_placeholder_text(state: &AppState) -> String {
@@ -182,9 +181,13 @@ fn weather_menu_text(state: &AppState) -> String {
 }
 
 fn tray_title(state: &AppState) -> String {
-    match state.player_count() {
-        Some(count) => count.to_string(),
-        None => "--".to_string(),
+    match (
+        state.online_players_count(),
+        state.online_favorite_players_count(),
+    ) {
+        (Some(count), Some(fave_count)) => format!("{count} ({fave_count})"),
+        (Some(count), None) => format!("{count}"),
+        _ => "--".to_string(),
     }
 }
 
