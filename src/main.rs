@@ -13,7 +13,7 @@ use tracing::error;
 use tracing_subscriber::EnvFilter;
 
 fn main() -> error::AppResult<()> {
-    init_tracing();
+    init_tracing()?;
 
     let config = match config::AppConfig::load() {
         Ok(config) => config,
@@ -23,10 +23,30 @@ fn main() -> error::AppResult<()> {
         }
     };
 
-    let shared_state = state::SharedAppState::new(state::AppState {
+    let state = state::AppState {
         config,
         ..Default::default()
-    });
+    };
+
+    init_tray(state)?;
+
+    Ok(())
+}
+
+fn init_tracing() -> error::AppResult<()> {
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+
+    tracing_subscriber::fmt()
+        .with_env_filter(env_filter)
+        .with_target(false)
+        .try_init()
+        .map_err(|err| error::AppError::TracingInitError(err.to_string()))?;
+
+    Ok(())
+}
+
+fn init_tray(state: state::AppState) -> error::AppResult<()> {
+    let shared_state = state::SharedAppState::new(state);
     let initial_state = shared_state.current();
 
     let event_loop = EventLoopBuilder::<state::AppEvent>::with_user_event().build();
@@ -38,13 +58,4 @@ fn main() -> error::AppResult<()> {
     worker::spawn_worker(shared_state, event_proxy);
 
     tray::run(event_loop, tray_app);
-}
-
-fn init_tracing() {
-    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
-
-    let _ = tracing_subscriber::fmt()
-        .with_env_filter(env_filter)
-        .with_target(false)
-        .try_init();
 }

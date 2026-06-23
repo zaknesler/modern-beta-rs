@@ -3,6 +3,9 @@ pub enum AppError {
     #[error("Invalid config: {0}")]
     InvalidConfig(String),
 
+    #[error("Could not initialize tracing: {0}")]
+    TracingInitError(String),
+
     #[error("Request to {url} failed: {source}")]
     Request {
         url: String,
