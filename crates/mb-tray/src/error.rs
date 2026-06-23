@@ -1,3 +1,5 @@
+pub type AppResult<T> = Result<T, AppError>;
+
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
     #[error("Invalid config: {0}")]
@@ -27,5 +29,3 @@ pub enum AppError {
     #[error(transparent)]
     TrayMenuError(#[from] tray_icon::menu::Error),
 }
-
-pub type AppResult<T> = Result<T, AppError>;

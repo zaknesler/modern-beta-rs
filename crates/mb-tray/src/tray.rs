@@ -81,7 +81,7 @@ impl TrayApp {
     }
 
     fn initialize(&mut self) -> AppResult<()> {
-        let icon_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("icon.png");
+        let icon_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("assets/icon.png");
         let icon = load_icon(&icon_path)?;
 
         let builder = TrayIconBuilder::new()
