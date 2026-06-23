@@ -66,10 +66,7 @@ fn run_worker(
 
             shared_state.set(new_state.clone());
 
-            if event_proxy
-                .send_event(AppEvent::StateUpdated(new_state))
-                .is_err()
-            {
+            if event_proxy.send_event(AppEvent::StateUpdated(new_state)).is_err() {
                 break;
             }
         }

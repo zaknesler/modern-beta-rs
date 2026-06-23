@@ -103,10 +103,8 @@ impl TrayApp {
 
     fn apply_state(&mut self, new_state: AppState) {
         self.state = new_state;
-        self.players_submenu
-            .set_text(players_submenu_title(&self.state));
-        self.fave_players_submenu
-            .set_text(fave_players_submenu_title(&self.state));
+        self.players_submenu.set_text(players_submenu_title(&self.state));
+        self.fave_players_submenu.set_text(fave_players_submenu_title(&self.state));
         self.weather_item.set_text(weather_menu_text(&self.state));
         self.refresh_players_submenus();
 

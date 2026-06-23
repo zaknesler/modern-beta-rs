@@ -43,10 +43,7 @@ impl AppState {
     pub fn online_favorite_players_count(&self) -> Option<usize> {
         match self.online_players() {
             OnlinePlayersState::Loaded(names) => Some(
-                names
-                    .iter()
-                    .filter(|name| self.config.favorite_players.contains(*name))
-                    .count(),
+                names.iter().filter(|name| self.config.favorite_players.contains(*name)).count(),
             ),
             _ => None,
         }
