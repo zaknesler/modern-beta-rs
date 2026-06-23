@@ -38,7 +38,7 @@ fn run_worker(
     runtime.block_on(async move {
         let mut current_state = shared_state.current();
 
-        let api = modern_beta_api::ApiClient::new(modern_beta_api::ClientConfig {
+        let api = modern_beta_api::Client::new(modern_beta_api::ClientConfig {
             api_key: current_state.config.api_key.clone(),
             world_name: current_state.config.world_name.clone(),
         })?;

@@ -4,18 +4,18 @@ use serde::de::DeserializeOwned;
 const API_BASE_URL: &str = "https://api.modernbeta.org/api/v1";
 
 #[derive(Clone)]
+pub struct Client {
+    client: reqwest::Client,
+    config: ClientConfig,
+}
+
+#[derive(Clone)]
 pub struct ClientConfig {
     pub api_key: String,
     pub world_name: String,
 }
 
-#[derive(Clone)]
-pub struct ApiClient {
-    client: reqwest::Client,
-    config: ClientConfig,
-}
-
-impl ApiClient {
+impl Client {
     pub fn new(config: ClientConfig) -> Result<Self> {
         let client = reqwest::Client::builder()
             .build()

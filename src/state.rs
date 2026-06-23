@@ -17,14 +17,13 @@ pub struct AppState {
 
 #[derive(Clone, Debug)]
 pub struct ResponseData {
-    pub online_players: modern_beta_api::OnlinePlayersResponse,
-    pub world: modern_beta_api::WorldResponse,
+    pub online_players: modern_beta_api::model::OnlinePlayersResponse,
+    pub world: modern_beta_api::model::WorldResponse,
 }
 
 pub enum OnlinePlayersState {
     Loading,
     Empty,
-    Unavailable,
     Loaded(Vec<String>),
 }
 
@@ -37,10 +36,7 @@ impl AppState {
         match self.data.as_ref() {
             None => OnlinePlayersState::Loading,
             Some(data) if data.online_players.count == 0 => OnlinePlayersState::Empty,
-            Some(data) => match data.online_players.names.as_ref() {
-                Some(names) => OnlinePlayersState::Loaded(names.clone()),
-                None => OnlinePlayersState::Unavailable,
-            },
+            Some(data) => OnlinePlayersState::Loaded(data.online_players.names.clone()),
         }
     }
 
@@ -56,7 +52,7 @@ impl AppState {
         }
     }
 
-    pub fn world(&self) -> Option<&modern_beta_api::WorldResponse> {
+    pub fn world(&self) -> Option<&modern_beta_api::model::WorldResponse> {
         self.data.as_ref().map(|data| &data.world)
     }
 }

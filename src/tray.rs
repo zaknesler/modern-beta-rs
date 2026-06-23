@@ -169,7 +169,6 @@ fn players_placeholder_text(state: &AppState) -> String {
     match state.online_players() {
         OnlinePlayersState::Loading => "Loading...".to_string(),
         OnlinePlayersState::Empty => "No players online".to_string(),
-        OnlinePlayersState::Unavailable => "Names unavailable".to_string(),
         OnlinePlayersState::Loaded(_) => "Players available".to_string(),
     }
 }
