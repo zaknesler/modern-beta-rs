@@ -3,15 +3,6 @@ pub enum AppError {
     #[error("Invalid config: {0}")]
     InvalidConfig(String),
 
-    #[error(transparent)]
-    ConfigLoad(#[from] figment::Error),
-
-    #[error(transparent)]
-    Runtime(#[from] std::io::Error),
-
-    #[error(transparent)]
-    ClientBuild(#[from] reqwest::Error),
-
     #[error("Request to {url} failed: {source}")]
     Request {
         url: String,
@@ -27,12 +18,21 @@ pub enum AppError {
     },
 
     #[error("Failed to parse response from {url}: {source}; body: {body}")]
-    Decode {
+    DecodeError {
         url: String,
         body: String,
         #[source]
         source: serde_json::Error,
     },
+
+    #[error(transparent)]
+    ConfigLoad(#[from] figment::Error),
+
+    #[error(transparent)]
+    Runtime(#[from] std::io::Error),
+
+    #[error(transparent)]
+    ClientBuild(#[from] reqwest::Error),
 
     #[error(transparent)]
     ImageDecode(#[from] image::ImageError),
@@ -42,6 +42,9 @@ pub enum AppError {
 
     #[error(transparent)]
     TrayIcon(#[from] tray_icon::Error),
+
+    #[error(transparent)]
+    TrayMenuError(#[from] tray_icon::menu::Error),
 }
 
 pub type AppResult<T> = Result<T, AppError>;

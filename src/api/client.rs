@@ -84,6 +84,6 @@ impl ApiClient {
             return Err(AppError::HttpStatus { url, status, body });
         }
 
-        serde_json::from_str(&body).map_err(|source| AppError::Decode { url, body, source })
+        serde_json::from_str(&body).map_err(|source| AppError::DecodeError { url, body, source })
     }
 }

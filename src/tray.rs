@@ -50,20 +50,20 @@ pub struct TrayApp {
 }
 
 impl TrayApp {
-    pub fn new(initial_state: AppState) -> Self {
+    pub fn try_new(initial_state: AppState) -> AppResult<Self> {
         let menu = Menu::new();
         let fave_players_submenu = Submenu::new(fave_players_submenu_title(&initial_state), true);
         let players_submenu = Submenu::new(players_submenu_title(&initial_state), true);
         let weather_item = MenuItem::new(weather_menu_text(&initial_state), false, None);
         let quit_item = MenuItem::new("Quit", true, None);
 
-        let _ = menu.append_items(&[
+        menu.append_items(&[
             &fave_players_submenu,
             &players_submenu,
             &weather_item,
             &PredefinedMenuItem::separator(),
             &quit_item,
-        ]);
+        ])?;
 
         let mut tray_app = Self {
             menu,
@@ -76,7 +76,8 @@ impl TrayApp {
         };
 
         tray_app.refresh_players_submenus();
-        tray_app
+
+        Ok(tray_app)
     }
 
     fn initialize(&mut self) -> AppResult<()> {

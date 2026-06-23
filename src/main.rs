@@ -12,7 +12,7 @@ use tao::event_loop::EventLoopBuilder;
 use tracing::error;
 use tracing_subscriber::EnvFilter;
 
-fn main() {
+fn main() -> error::AppResult<()> {
     init_tracing();
 
     let config = match config::AppConfig::load() {
@@ -34,7 +34,7 @@ fn main() {
 
     tray::install_menu_event_handler(event_proxy.clone());
 
-    let tray_app = tray::TrayApp::new(initial_state);
+    let tray_app = tray::TrayApp::try_new(initial_state)?;
     worker::spawn_worker(shared_state, event_proxy);
 
     tray::run(event_loop, tray_app);
