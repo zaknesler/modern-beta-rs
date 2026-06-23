@@ -9,3 +9,14 @@ rust-version = "1.96"
 authors = ["Zak Nesler"]
 repository = "https://github.com/zaknesler/modern-beta-rs"
 license = "MIT"
+
+[profile.release]
+strip = true
+opt-level = "s"
+lto = true
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3

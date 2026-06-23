@@ -16,16 +16,5 @@ tracing-subscriber = { version = "0.3.19", features = ["fmt", "env-filter"] }
 tray-icon = "0.24.1"
 
 [[bin]]
-name = "modern-beta-tray"
+name = "mb-tray"
 path = "src/bin.rs"
-
-[profile.release]
-strip = true
-opt-level = "s"
-lto = true
-
-[profile.dev]
-opt-level = 1
-
-[profile.dev.package."*"]
-opt-level = 3
