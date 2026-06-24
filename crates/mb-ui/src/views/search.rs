@@ -1,4 +1,4 @@
-use gpui::{App, Context, Entity, Window, div, prelude::*, px};
+use gpui::{App, ClickEvent, Context, Entity, Window, div, prelude::*, px};
 use gpui_component::{
     button::*,
     input::{Input, InputState},
@@ -23,10 +23,16 @@ impl ProfileSearchView {
 
         Self { input }
     }
+
+    fn on_click(&mut self, _: &ClickEvent, _: &mut Window, cx: &mut Context<Self>) {
+        let val = self.input.read(cx).value();
+
+        println!("clicked: {val}")
+    }
 }
 
 impl Render for ProfileSearchView {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .v_flex()
             .flex_row()
@@ -38,7 +44,7 @@ impl Render for ProfileSearchView {
                 Button::new("ok")
                     .primary()
                     .label("Search")
-                    .on_click(|_, _, _| println!("Clicked!")),
+                    .on_click(cx.listener(Self::on_click)),
             )
     }
 }
