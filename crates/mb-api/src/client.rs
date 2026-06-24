@@ -17,25 +17,31 @@ pub struct ClientConfig {
 
 impl Client {
     pub fn new(config: ClientConfig) -> Result<Self> {
-        let client = reqwest::Client::builder().build().map_err(Error::ClientBuild)?;
+        let client = reqwest::Client::builder()
+            .build()
+            .map_err(Error::ClientBuild)?;
 
         Ok(Self { config, client })
     }
 
     pub async fn get_player_profile(&self, username: &str) -> Result<model::PlayerProfileResponse> {
-        self.make_request(format!("{API_BASE_URL}/players/{username}/profile")).await
+        self.make_request(format!("{API_BASE_URL}/players/{username}/profile"))
+            .await
     }
 
     pub async fn get_online_player_count(&self) -> Result<model::OnlinePlayerCountResponse> {
-        self.make_request(format!("{API_BASE_URL}/server/online")).await
+        self.make_request(format!("{API_BASE_URL}/server/online"))
+            .await
     }
 
     pub async fn get_online_players(&self) -> Result<model::OnlinePlayersResponse> {
-        self.make_request(format!("{API_BASE_URL}/server/online/all")).await
+        self.make_request(format!("{API_BASE_URL}/server/online/all"))
+            .await
     }
 
     pub async fn get_server_stats(&self) -> Result<model::ServerStatsResponse> {
-        self.make_request(format!("{API_BASE_URL}/server/stats")).await
+        self.make_request(format!("{API_BASE_URL}/server/stats"))
+            .await
     }
 
     pub async fn get_world(&self) -> Result<model::WorldResponse> {

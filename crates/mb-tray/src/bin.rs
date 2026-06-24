@@ -5,6 +5,7 @@ mod error;
 mod state;
 mod tray;
 mod ui;
+mod window;
 mod worker;
 
 use std::{process, sync::mpsc, time::Duration};
@@ -45,6 +46,8 @@ fn main() -> error::AppResult<()> {
         let (tx, rx) = mpsc::channel::<state::AppState>();
         worker::Worker::new(shared_state, tx).spawn();
 
+        let mut window_manager = window::WindowManager::default();
+
         app.spawn(async move |cx| {
             loop {
                 // Wait 200ms between polls
@@ -57,6 +60,14 @@ fn main() -> error::AppResult<()> {
                 }
 
                 while let Ok(event) = tray_icon::menu::MenuEvent::receiver().try_recv() {
+                    if tray_app.is_lookup_event(&event) {
+                        if let Err(err) = cx.update(|cx| window_manager.open_or_focus_lookup(cx)) {
+                            error!(error = %err, "failed to open or focus lookup window");
+                        }
+
+                        continue;
+                    }
+
                     if tray_app.is_quit_event(&event) {
                         tray_app.close();
                         cx.update(|cx| cx.quit());

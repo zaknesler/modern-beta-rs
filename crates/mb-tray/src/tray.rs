@@ -13,6 +13,7 @@ pub struct TrayApp {
     fave_players_submenu: Submenu,
     players_submenu: Submenu,
     weather_item: MenuItem,
+    lookup_item: MenuItem,
     quit_item: MenuItem,
     tray_icon: Option<TrayIcon>,
     state: AppState,
@@ -24,12 +25,15 @@ impl TrayApp {
         let fave_players_submenu = Submenu::new(fave_players_submenu_title(&initial_state), true);
         let players_submenu = Submenu::new(players_submenu_title(&initial_state), true);
         let weather_item = MenuItem::new(weather_menu_text(&initial_state), false, None);
+        let lookup_item = MenuItem::new("Lookup...", true, None);
         let quit_item = MenuItem::new("Quit", true, None);
 
         menu.append_items(&[
             &fave_players_submenu,
             &players_submenu,
             &weather_item,
+            &PredefinedMenuItem::separator(),
+            &lookup_item,
             &PredefinedMenuItem::separator(),
             &quit_item,
         ])?;
@@ -39,6 +43,7 @@ impl TrayApp {
             fave_players_submenu,
             players_submenu,
             weather_item,
+            lookup_item,
             quit_item,
             tray_icon: None,
             state: initial_state,
@@ -63,6 +68,10 @@ impl TrayApp {
         );
 
         Ok(())
+    }
+
+    pub fn is_lookup_event(&self, event: &MenuEvent) -> bool {
+        event.id == self.lookup_item.id()
     }
 
     pub fn is_quit_event(&self, event: &MenuEvent) -> bool {
