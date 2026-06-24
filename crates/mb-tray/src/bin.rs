@@ -4,6 +4,7 @@ mod config;
 mod error;
 mod state;
 mod tray;
+mod ui;
 mod worker;
 
 use std::{process, sync::mpsc, time::Duration};
@@ -27,7 +28,7 @@ fn main() -> error::AppResult<()> {
     });
     let initial_state = shared_state.current();
 
-    mb_ui::run(move |app| {
+    ui::run(move |app| {
         let mut tray_app = match tray::TrayApp::try_new(initial_state) {
             Ok(app) => app,
             Err(err) => {

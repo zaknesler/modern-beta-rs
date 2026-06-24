@@ -4014,31 +4014,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mb-tray"
-version = "0.0.0"
-dependencies = [
- "figment",
- "image",
- "mb-ui",
- "modern-beta-api",
- "serde",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "tray-icon",
-]
-
-[[package]]
-name = "mb-ui"
-version = "0.0.0"
-dependencies = [
- "gpui",
- "gpui-component",
- "gpui_platform",
-]
-
-[[package]]
 name = "md-5"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4154,6 +4129,24 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "modern-beta-tray"
+version = "0.0.0"
+dependencies = [
+ "figment",
+ "gpui",
+ "gpui-component",
+ "gpui_platform",
+ "image",
+ "modern-beta-api",
+ "serde",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "tray-icon",
 ]
 
 [[package]]

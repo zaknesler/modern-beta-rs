@@ -1,10 +1,9 @@
 [package]
-name = "mb-tray"
+name = "modern-beta-tray"
 version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-mb-ui = { path = "../mb-ui" }
 modern-beta-api = { path = "../mb-api" }
 figment = { version = "0.10.19", features = ["toml"] }
 image = "0.25.10"
@@ -14,6 +13,10 @@ tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread", "time"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["fmt", "env-filter"] }
 tray-icon = "0.24.1"
+gpui = { git = "https://github.com/zed-industries/zed", rev = "1d217ee39d381ac101b7cf49d3d22451ac1093fe" }
+gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "1d217ee39d381ac101b7cf49d3d22451ac1093fe", features = ["font-kit"] }
+gpui-component = { git = "https://github.com/longbridge/gpui-component" }
+
 
 [[bin]]
 name = "mb-tray"
