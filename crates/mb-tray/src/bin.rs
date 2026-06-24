@@ -48,7 +48,15 @@ fn init_tray(state: state::AppState) -> error::AppResult<()> {
     let shared_state = state::SharedAppState::new(state);
     let initial_state = shared_state.current();
 
-    let event_loop = EventLoopBuilder::<state::AppEvent>::with_user_event().build();
+    #[allow(unused_mut)]
+    let mut event_loop = EventLoopBuilder::<state::AppEvent>::with_user_event().build();
+
+    #[cfg(target_os = "macos")]
+    {
+        use tao::platform::macos::{ActivationPolicy, EventLoopExtMacOS};
+        event_loop.set_activation_policy(ActivationPolicy::Accessory);
+    }
+
     let event_proxy = event_loop.create_proxy();
 
     tray::install_menu_event_handler(event_proxy.clone());
