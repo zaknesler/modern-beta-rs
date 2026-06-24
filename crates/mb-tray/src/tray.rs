@@ -1,43 +1,12 @@
 use crate::{
     error::AppResult,
-    state::{AppEvent, AppState, OnlinePlayersState},
+    state::{AppState, OnlinePlayersState},
 };
 use std::path::Path;
-use tao::{
-    event::Event,
-    event_loop::{ControlFlow, EventLoop, EventLoopProxy},
-};
-use tracing::error;
 use tray_icon::{
     TrayIcon, TrayIconBuilder,
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu},
 };
-
-pub fn install_menu_event_handler(proxy: EventLoopProxy<AppEvent>) {
-    MenuEvent::set_event_handler(Some(move |event| {
-        let _ = proxy.send_event(AppEvent::Menu(event));
-    }));
-}
-
-pub fn run(event_loop: EventLoop<AppEvent>, mut tray_app: TrayApp) -> ! {
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Wait;
-
-        match event {
-            Event::NewEvents(tao::event::StartCause::Init) => {
-                if let Err(err) = tray_app.initialize() {
-                    error!(error = %err, "failed to initialize tray UI");
-                    *control_flow = ControlFlow::Exit;
-                }
-            }
-            Event::UserEvent(AppEvent::Menu(event)) => {
-                tray_app.handle_menu_event(event, control_flow)
-            }
-            Event::UserEvent(AppEvent::StateUpdated(state)) => tray_app.apply_state(state),
-            _ => {}
-        }
-    })
-}
 
 pub struct TrayApp {
     menu: Menu,
@@ -80,28 +49,31 @@ impl TrayApp {
         Ok(tray_app)
     }
 
-    fn initialize(&mut self) -> AppResult<()> {
+    pub fn initialize(&mut self) -> AppResult<()> {
         let icon_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("assets/icon.png");
         let icon = load_icon(&icon_path)?;
 
-        let builder = TrayIconBuilder::new()
-            .with_menu(Box::new(self.menu.clone()))
-            .with_tooltip("Modern Beta")
-            .with_icon(icon)
-            .with_title(tray_title(&self.state));
+        self.tray_icon = Some(
+            TrayIconBuilder::new()
+                .with_menu(Box::new(self.menu.clone()))
+                .with_tooltip("Modern Beta")
+                .with_icon(icon)
+                .with_title(tray_title(&self.state))
+                .build()?,
+        );
 
-        self.tray_icon = Some(builder.build()?);
         Ok(())
     }
 
-    fn handle_menu_event(&mut self, event: MenuEvent, control_flow: &mut ControlFlow) {
-        if event.id == self.quit_item.id() {
-            self.tray_icon.take();
-            *control_flow = ControlFlow::Exit;
-        }
+    pub fn is_quit_event(&self, event: &MenuEvent) -> bool {
+        event.id == self.quit_item.id()
     }
 
-    fn apply_state(&mut self, new_state: AppState) {
+    pub fn close(&mut self) {
+        self.tray_icon.take();
+    }
+
+    pub fn apply_state(&mut self, new_state: AppState) {
         self.state = new_state;
         self.players_submenu
             .set_text(players_submenu_title(&self.state));
@@ -165,11 +137,11 @@ fn fave_players_submenu_title(state: &AppState) -> String {
     }
 }
 
-fn players_placeholder_text(state: &AppState) -> String {
+fn players_placeholder_text(state: &AppState) -> &'static str {
     match state.online_players() {
-        OnlinePlayersState::Loading => "Loading...".to_string(),
-        OnlinePlayersState::Empty => "No players online".to_string(),
-        OnlinePlayersState::Loaded(_) => "Players available".to_string(),
+        OnlinePlayersState::Loading => "Loading...",
+        OnlinePlayersState::Empty => "No players online",
+        OnlinePlayersState::Loaded(_) => "Players available",
     }
 }
 

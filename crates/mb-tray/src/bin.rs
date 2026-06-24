@@ -6,8 +6,7 @@ mod state;
 mod tray;
 mod worker;
 
-use std::process;
-use tao::event_loop::EventLoopBuilder;
+use std::{process, sync::mpsc, time::Duration};
 use tracing::error;
 use tracing_subscriber::EnvFilter;
 
@@ -22,12 +21,51 @@ fn main() -> error::AppResult<()> {
         }
     };
 
-    let state = state::AppState {
+    let shared_state = state::SharedAppState::new(state::AppState {
         config,
         ..Default::default()
-    };
+    });
+    let initial_state = shared_state.current();
 
-    init_tray(state)?;
+    mb_ui::run(move |app| {
+        let mut tray_app = match tray::TrayApp::try_new(initial_state) {
+            Ok(app) => app,
+            Err(err) => {
+                error!(error = %err, "failed to create tray");
+                return;
+            }
+        };
+
+        if let Err(err) = tray_app.initialize() {
+            error!(error = %err, "failed to initialize tray icon");
+            return;
+        }
+
+        let (tx, rx) = mpsc::channel::<state::AppState>();
+        worker::Worker::new(shared_state, tx).spawn();
+
+        app.spawn(async move |cx| {
+            loop {
+                // Wait 200ms between polls
+                cx.background_executor()
+                    .timer(Duration::from_millis(200))
+                    .await;
+
+                while let Ok(new_state) = rx.try_recv() {
+                    tray_app.apply_state(new_state);
+                }
+
+                while let Ok(event) = tray_icon::menu::MenuEvent::receiver().try_recv() {
+                    if tray_app.is_quit_event(&event) {
+                        tray_app.close();
+                        cx.update(|cx| cx.quit());
+                        return;
+                    }
+                }
+            }
+        })
+        .detach();
+    });
 
     Ok(())
 }
@@ -42,27 +80,4 @@ fn init_tracing() -> error::AppResult<()> {
         .map_err(|err| error::AppError::TracingInitError(err.to_string()))?;
 
     Ok(())
-}
-
-fn init_tray(state: state::AppState) -> error::AppResult<()> {
-    let shared_state = state::SharedAppState::new(state);
-    let initial_state = shared_state.current();
-
-    #[allow(unused_mut)]
-    let mut event_loop = EventLoopBuilder::<state::AppEvent>::with_user_event().build();
-
-    #[cfg(target_os = "macos")]
-    {
-        use tao::platform::macos::{ActivationPolicy, EventLoopExtMacOS};
-        event_loop.set_activation_policy(ActivationPolicy::Accessory);
-    }
-
-    let event_proxy = event_loop.create_proxy();
-
-    tray::install_menu_event_handler(event_proxy.clone());
-
-    let tray_app = tray::TrayApp::try_new(initial_state)?;
-    worker::spawn_worker(shared_state, event_proxy);
-
-    tray::run(event_loop, tray_app);
 }

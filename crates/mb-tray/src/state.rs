@@ -1,11 +1,6 @@
 use crate::config::AppConfig;
 use std::sync::{Arc, Mutex};
 
-pub enum AppEvent {
-    Menu(tray_icon::menu::MenuEvent),
-    StateUpdated(AppState),
-}
-
 #[derive(Clone, Default)]
 pub struct SharedAppState(Arc<Mutex<AppState>>);
 
