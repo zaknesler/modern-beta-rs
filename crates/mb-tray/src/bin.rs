@@ -8,21 +8,14 @@ mod ui;
 mod window;
 mod worker;
 
-use std::{process, sync::mpsc, time::Duration};
+use std::{sync::mpsc, time::Duration};
 use tracing::error;
 use tracing_subscriber::EnvFilter;
 
 fn main() -> error::AppResult<()> {
     init_tracing()?;
 
-    let config = match config::AppConfig::load() {
-        Ok(config) => config,
-        Err(err) => {
-            error!(error = %err, "failed to load application config");
-            process::exit(1);
-        }
-    };
-
+    let config = config::AppConfig::load()?;
     let shared_state = state::SharedAppState::new(state::AppState {
         config,
         ..Default::default()
@@ -30,54 +23,54 @@ fn main() -> error::AppResult<()> {
     let initial_state = shared_state.current();
 
     ui::run(move |app| {
-        let mut tray_app = match tray::TrayApp::try_new(initial_state) {
-            Ok(app) => app,
-            Err(err) => {
-                error!(error = %err, "failed to create tray");
-                return;
-            }
-        };
-
-        if let Err(err) = tray_app.initialize() {
-            error!(error = %err, "failed to initialize tray icon");
-            return;
+        if let Err(err) = run_tray_app(app, initial_state, shared_state) {
+            error!(error = %err, "failed to start tray app");
         }
+    });
 
-        let (tx, rx) = mpsc::channel::<state::AppState>();
-        worker::Worker::new(shared_state, tx).spawn();
+    Ok(())
+}
 
-        let mut window_manager = window::WindowManager::default();
+fn run_tray_app(
+    app: &mut gpui::App,
+    initial_state: state::AppState,
+    shared_state: state::SharedAppState,
+) -> error::AppResult<()> {
+    let mut tray_app = tray::TrayApp::try_new(initial_state)?;
+    tray_app.initialize()?;
 
-        app.spawn(async move |cx| {
-            loop {
-                // Wait 200ms between polls
-                cx.background_executor()
-                    .timer(Duration::from_millis(200))
-                    .await;
+    let (tx, rx) = mpsc::channel::<state::AppState>();
+    worker::Worker::new(shared_state, tx).spawn();
 
-                while let Ok(new_state) = rx.try_recv() {
-                    tray_app.apply_state(new_state);
+    let mut window_manager = window::WindowManager::default();
+
+    app.spawn(async move |cx| {
+        loop {
+            cx.background_executor()
+                .timer(Duration::from_millis(200))
+                .await;
+
+            while let Ok(new_state) = rx.try_recv() {
+                tray_app.apply_state(new_state);
+            }
+
+            while let Ok(event) = tray_icon::menu::MenuEvent::receiver().try_recv() {
+                if tray_app.is_lookup_event(&event) {
+                    if let Err(err) = cx.update(|cx| window_manager.open_or_focus_profile(cx)) {
+                        error!(error = %err, "failed to open or focus lookup window");
+                    }
+                    continue;
                 }
 
-                while let Ok(event) = tray_icon::menu::MenuEvent::receiver().try_recv() {
-                    if tray_app.is_lookup_event(&event) {
-                        if let Err(err) = cx.update(|cx| window_manager.open_or_focus_profile(cx)) {
-                            error!(error = %err, "failed to open or focus lookup window");
-                        }
-
-                        continue;
-                    }
-
-                    if tray_app.is_quit_event(&event) {
-                        tray_app.close();
-                        cx.update(|cx| cx.quit());
-                        return;
-                    }
+                if tray_app.is_quit_event(&event) {
+                    tray_app.close();
+                    cx.update(|cx| cx.quit());
+                    return;
                 }
             }
-        })
-        .detach();
-    });
+        }
+    })
+    .detach();
 
     Ok(())
 }
