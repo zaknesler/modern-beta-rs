@@ -8,14 +8,14 @@ pub enum AppError {
     #[error("Could not initialize tracing: {0}")]
     TracingInitError(String),
 
+    #[error("Could not find icon")]
+    IconNotFound,
+
+    #[error("user system config directory not found")]
+    ConfigDirNotFound,
+
     #[error(transparent)]
     ApiError(#[from] modern_beta_api::Error),
-
-    #[error(transparent)]
-    ConfigLoad(#[from] figment::Error),
-
-    #[error(transparent)]
-    Runtime(#[from] std::io::Error),
 
     #[error(transparent)]
     ImageDecode(#[from] image::ImageError),
@@ -28,4 +28,13 @@ pub enum AppError {
 
     #[error(transparent)]
     TrayMenuError(#[from] tray_icon::menu::Error),
+
+    #[error(transparent)]
+    ConfigError(#[from] figment::Error),
+
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+
+    #[error(transparent)]
+    Utf8Error(#[from] std::str::Utf8Error),
 }

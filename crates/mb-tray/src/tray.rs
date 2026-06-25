@@ -1,12 +1,16 @@
 use crate::{
-    error::AppResult,
+    error::{AppError, AppResult},
     state::{AppState, OnlinePlayersState},
 };
-use std::path::Path;
+use image::EncodableLayout;
 use tray_icon::{
     TrayIcon, TrayIconBuilder,
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu},
 };
+
+#[derive(rust_embed::Embed)]
+#[folder = "assets"]
+struct AssetDir;
 
 pub struct TrayApp {
     menu: Menu,
@@ -55,8 +59,7 @@ impl TrayApp {
     }
 
     pub fn initialize(&mut self) -> AppResult<()> {
-        let icon_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("assets/icon.png");
-        let icon = load_icon(&icon_path)?;
+        let icon = load_icon()?;
 
         self.tray_icon = Some(
             TrayIconBuilder::new()
@@ -172,8 +175,9 @@ fn tray_title(state: &AppState) -> String {
     }
 }
 
-fn load_icon(path: &Path) -> AppResult<tray_icon::Icon> {
-    let image = image::open(path)?.into_rgba8();
+fn load_icon() -> AppResult<tray_icon::Icon> {
+    let file = AssetDir::get("icon.png").ok_or_else(|| AppError::IconNotFound)?;
+    let image = image::load_from_memory(file.data.as_bytes())?.into_rgba8();
     let (width, height) = image.dimensions();
     let rgba = image.into_raw();
 

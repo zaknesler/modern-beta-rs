@@ -17,9 +17,7 @@ pub struct ClientConfig {
 
 impl Client {
     pub fn new(config: ClientConfig) -> Result<Self> {
-        let client = reqwest::Client::builder()
-            .build()
-            .map_err(Error::ClientBuild)?;
+        let client = reqwest::Client::builder().build()?;
 
         Ok(Self { config, client })
     }

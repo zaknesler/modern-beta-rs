@@ -1,5 +1,5 @@
 use crate::{
-    error::{AppError, AppResult},
+    error::AppResult,
     state::{AppState, SharedAppState},
 };
 use std::{sync::mpsc, thread};
@@ -40,8 +40,7 @@ impl Worker {
     fn run(&self) -> AppResult<()> {
         let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_all()
-            .build()
-            .map_err(AppError::Runtime)?;
+            .build()?;
 
         let shared_state = self.shared_state.clone();
         let tx = self.tx.clone();
