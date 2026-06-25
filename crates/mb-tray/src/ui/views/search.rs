@@ -1,8 +1,8 @@
 use gpui::{App, ClickEvent, Context, Entity, Window, div, prelude::*, px};
 use gpui_component::{
+    StyledExt as _,
     button::*,
     input::{Input, InputState},
-    *,
 };
 
 pub struct ProfileSearchView {
