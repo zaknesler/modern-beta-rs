@@ -5,7 +5,7 @@ use crate::{
 use image::EncodableLayout;
 use tray_icon::{
     TrayIcon, TrayIconBuilder,
-    menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu},
+    menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu, accelerator::Accelerator},
 };
 
 #[derive(rust_embed::Embed)]
@@ -29,7 +29,14 @@ impl TrayApp {
         let fave_players_submenu = Submenu::new(fave_players_submenu_title(&initial_state), true);
         let players_submenu = Submenu::new(players_submenu_title(&initial_state), true);
         let weather_item = MenuItem::new(weather_menu_text(&initial_state), false, None);
-        let lookup_item = MenuItem::new("Lookup...", true, None);
+        let lookup_item = MenuItem::new(
+            "Lookup...",
+            true,
+            Some(Accelerator::new(
+                None,
+                tray_icon::menu::accelerator::Code::KeyL,
+            )),
+        );
         let quit_item = MenuItem::new("Quit", true, None);
 
         menu.append_items(&[
