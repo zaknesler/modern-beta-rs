@@ -15,7 +15,7 @@ pub fn run(setup: impl FnOnce(&mut App) + 'static) {
     });
 }
 
-pub fn open_lookup_window(cx: &mut App) -> gpui::Result<AnyWindowHandle> {
+pub fn open_profile_window(cx: &mut App) -> gpui::Result<AnyWindowHandle> {
     let bounds = Bounds::centered(None, size(px(480.), px(360.0)), cx);
 
     let handle = cx.open_window(

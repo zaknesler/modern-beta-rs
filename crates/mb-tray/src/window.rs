@@ -7,7 +7,7 @@ pub struct WindowManager {
 }
 
 impl WindowManager {
-    pub fn open_or_focus_lookup(&mut self, cx: &mut App) -> gpui::Result<()> {
+    pub fn open_or_focus_profile(&mut self, cx: &mut App) -> gpui::Result<()> {
         if let Some(handle) = self.lookup_window {
             cx.activate(true);
 
@@ -21,7 +21,7 @@ impl WindowManager {
             self.lookup_window = None;
         }
 
-        let handle = ui::open_lookup_window(cx)?;
+        let handle = ui::open_profile_window(cx)?;
         self.lookup_window = Some(handle);
 
         Ok(())

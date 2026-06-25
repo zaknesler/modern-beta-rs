@@ -61,7 +61,7 @@ fn main() -> error::AppResult<()> {
 
                 while let Ok(event) = tray_icon::menu::MenuEvent::receiver().try_recv() {
                     if tray_app.is_lookup_event(&event) {
-                        if let Err(err) = cx.update(|cx| window_manager.open_or_focus_lookup(cx)) {
+                        if let Err(err) = cx.update(|cx| window_manager.open_or_focus_profile(cx)) {
                             error!(error = %err, "failed to open or focus lookup window");
                         }
 
