@@ -1,10 +1,10 @@
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct OnlinePlayerCountResponse {
     /// The number of players currently online.
     pub online: u32,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct OnlinePlayersResponse {
     /// The total number of players currently online.
     pub count: u32,
@@ -21,7 +21,7 @@ pub enum ClientType {
     VirtualReality,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct PlayerLocation {
     /// The X coordinate of the player's position.
     pub x: i32,
@@ -33,7 +33,7 @@ pub struct PlayerLocation {
     pub world: Option<String>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct PlayerProfileResponse {
     /// The player's UUID.
     pub uuid: Option<String>,
@@ -59,7 +59,7 @@ pub struct PlayerProfileResponse {
     pub location: Option<PlayerLocation>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct ServerStatsResponse {
     /// The total number of players registered on the server.
     pub total_registered_players: u32,
@@ -69,7 +69,7 @@ pub struct ServerStatsResponse {
     pub last_reboot: Option<String>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct PlayerPositionEntry {
     /// The username of the player.
     pub username: String,
@@ -81,7 +81,7 @@ pub struct PlayerPositionEntry {
     pub z: i32,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct WorldPositionsResponse {
     /// The name of the world these positions are from.
     pub world: String,
@@ -89,7 +89,7 @@ pub struct WorldPositionsResponse {
     pub players: Vec<PlayerPositionEntry>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct WorldResponse {
     /// The name of the world.
     pub name: String,
