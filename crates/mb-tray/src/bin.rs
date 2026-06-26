@@ -36,6 +36,14 @@ fn run_tray_app(
     initial_state: state::AppState,
     shared_state: state::SharedAppState,
 ) -> error::AppResult<()> {
+    gpui_tokio::init(app);
+
+    let client = modern_beta_api::Client::new(modern_beta_api::ClientConfig {
+        api_key: initial_state.config.api_key.clone(),
+        world_name: initial_state.config.world_name.clone(),
+    })?;
+    app.set_global(ui::ApiClient(client));
+
     let mut tray_app = tray::TrayApp::try_new(initial_state)?;
     tray_app.initialize()?;
 
