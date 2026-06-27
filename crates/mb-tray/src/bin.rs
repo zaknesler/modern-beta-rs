@@ -42,7 +42,7 @@ fn run_tray_app(
         api_key: initial_state.config.api_key.clone(),
         world_name: initial_state.config.world_name.clone(),
     })?;
-    app.set_global(ui::ApiClient(client));
+    app.set_global(crate::ui::client::ApiClient(client));
 
     let mut tray_app = tray::TrayApp::try_new(initial_state)?;
     tray_app.initialize()?;

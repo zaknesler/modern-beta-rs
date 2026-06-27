@@ -4,18 +4,9 @@ use gpui::{
 };
 use gpui_component::Root;
 
-mod macos;
-mod views;
-
-pub struct ApiClient(pub modern_beta_api::Client);
-
-impl gpui::Global for ApiClient {}
-
-impl ApiClient {
-    pub fn from_app(cx: &mut App) -> modern_beta_api::Client {
-        cx.global::<Self>().0.clone()
-    }
-}
+pub mod client;
+pub mod macos;
+pub mod views;
 
 pub fn run(setup: impl FnOnce(&mut App) + 'static) {
     gpui_platform::application().run(move |cx| {

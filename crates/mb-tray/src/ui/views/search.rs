@@ -1,4 +1,4 @@
-use crate::ui::ApiClient;
+use crate::ui::client::ApiClient;
 use gpui::{App, ClickEvent, Context, Entity, Task, Window, div, prelude::*, px};
 use gpui_component::{
     StyledExt as _,
