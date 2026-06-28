@@ -1,4 +1,8 @@
 #![allow(clippy::result_large_err)]
+#![cfg_attr(
+    all(target_os = "windows", not(debug_assertions)),
+    windows_subsystem = "windows"
+)]
 
 mod config;
 mod error;

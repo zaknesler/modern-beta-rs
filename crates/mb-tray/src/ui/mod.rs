@@ -1,6 +1,6 @@
 use gpui::{
-    AnyWindowHandle, App, Bounds, TitlebarOptions, WindowBounds, WindowOptions, prelude::*, px,
-    size,
+    AnyWindowHandle, App, Bounds, QuitMode, TitlebarOptions, WindowBounds, WindowOptions,
+    prelude::*, px, size,
 };
 use gpui_component::Root;
 
@@ -13,6 +13,7 @@ pub fn run(setup: impl FnOnce(&mut App) + 'static) {
         .with_assets(gpui_component_assets::Assets)
         .run(move |cx| {
             macos::configure_activation_policy();
+            cx.set_quit_mode(QuitMode::Explicit);
             gpui_component::init(cx);
             setup(cx);
         });
