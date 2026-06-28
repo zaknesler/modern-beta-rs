@@ -76,7 +76,12 @@ impl ProfileSearchView {
     fn status(&self) -> impl IntoElement {
         match &self.state {
             SearchState::Idle => div(),
-            SearchState::Loading => div().child(Spinner::new().large()),
+            SearchState::Loading => div()
+                .flex()
+                .size_full()
+                .items_center()
+                .justify_center()
+                .child(Spinner::new().large()),
             SearchState::Error(err) => {
                 div().child(Alert::error("error-alert", format!("Error: {err}")))
             }
@@ -121,6 +126,6 @@ impl Render for ProfileSearchView {
                             .on_click(cx.listener(Self::on_search)),
                     ),
             )
-            .child(div().whitespace_normal().child(self.status()))
+            .child(self.status())
     }
 }
