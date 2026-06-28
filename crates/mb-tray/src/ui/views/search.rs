@@ -1,9 +1,11 @@
 use crate::ui::client::ApiClient;
 use gpui::{App, ClickEvent, Context, Entity, Task, Window, div, prelude::*, px};
 use gpui_component::{
-    StyledExt as _,
+    Sizable, StyledExt as _,
+    alert::Alert,
     button::*,
     input::{Input, InputState},
+    spinner::Spinner,
 };
 use modern_beta_api::model::PlayerProfileResponse;
 
@@ -71,17 +73,29 @@ impl ProfileSearchView {
         }));
     }
 
-    fn status(&self) -> String {
+    fn status(&self) -> impl IntoElement {
         match &self.state {
-            SearchState::Idle => String::new(),
-            SearchState::Loading => "Loading...".to_string(),
-            SearchState::Error(err) => format!("Error: {err}"),
+            SearchState::Idle => div(),
+            SearchState::Loading => div().child(Spinner::new().large()),
+            SearchState::Error(err) => {
+                div().child(Alert::error("error-alert", format!("Error: {err}")))
+            }
             SearchState::Loaded(profile) => {
                 let name = profile.username.as_deref().unwrap_or("(unknown)");
                 let online = if profile.online { "online" } else { "offline" };
                 let rank = profile.rank_name.as_deref().unwrap_or("--");
                 let hours = profile.played_time_seconds / 3600;
-                format!("{name} — {online}\nrank: {rank}\nplayed: {hours}h")
+                let uuid = &profile.uuid;
+
+                div()
+                    .flex()
+                    .v_flex()
+                    .gap_2()
+                    .child(gpui::img(format!("https://mc-heads.net/avatar/{uuid}.png")).size_24())
+                    .child(format!("{name}"))
+                    .child(format!("{online}"))
+                    .child(format!("rank: {rank}"))
+                    .child(format!("played: {hours}h"))
             }
         }
     }

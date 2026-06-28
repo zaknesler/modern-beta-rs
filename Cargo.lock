@@ -4138,6 +4138,7 @@ dependencies = [
  "figment",
  "gpui",
  "gpui-component",
+ "gpui-component-assets",
  "gpui_platform",
  "gpui_tokio",
  "image",

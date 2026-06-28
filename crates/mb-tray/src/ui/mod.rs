@@ -9,11 +9,13 @@ pub mod macos;
 pub mod views;
 
 pub fn run(setup: impl FnOnce(&mut App) + 'static) {
-    gpui_platform::application().run(move |cx| {
-        macos::configure_activation_policy();
-        gpui_component::init(cx);
-        setup(cx);
-    });
+    gpui_platform::application()
+        .with_assets(gpui_component_assets::Assets)
+        .run(move |cx| {
+            macos::configure_activation_policy();
+            gpui_component::init(cx);
+            setup(cx);
+        });
 }
 
 pub fn open_profile_window(cx: &mut App) -> gpui::Result<AnyWindowHandle> {

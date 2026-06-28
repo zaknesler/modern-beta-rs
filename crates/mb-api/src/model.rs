@@ -36,7 +36,7 @@ pub struct PlayerLocation {
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq)]
 pub struct PlayerProfileResponse {
     /// The player's UUID.
-    pub uuid: Option<String>,
+    pub uuid: String,
     /// The player's current username.
     pub username: Option<String>,
     /// A list of usernames the player has previously used.
