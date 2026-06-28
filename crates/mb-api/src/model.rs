@@ -54,7 +54,7 @@ pub struct PlayerProfileResponse {
     /// The total number of seconds the player has played on the server.
     pub played_time_seconds: u32,
     /// The type of client the player is using (e.g. Java, Bedrock).
-    pub client_type: ClientType,
+    pub client_type: Option<ClientType>,
     /// The player's current location in the world, if available.
     pub location: Option<PlayerLocation>,
 }
