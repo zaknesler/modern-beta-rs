@@ -86,10 +86,10 @@ impl ProfileSearchView {
                 div().child(Alert::error("error-alert", format!("Error: {err}")))
             }
             SearchState::Loaded(profile) => {
-                let name = profile.username.as_deref().unwrap_or("(unknown)");
                 let online = if profile.online { "online" } else { "offline" };
-                let rank = profile.rank_name.as_deref().unwrap_or("--");
                 let hours = profile.played_time_seconds / 3600;
+                let name = &profile.username;
+                let rank = &profile.rank_name;
                 let uuid = &profile.uuid;
 
                 div()

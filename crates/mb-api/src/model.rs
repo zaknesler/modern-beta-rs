@@ -38,9 +38,9 @@ pub struct PlayerProfileResponse {
     /// The player's UUID.
     pub uuid: String,
     /// The player's current username.
-    pub username: Option<String>,
+    pub username: String,
     /// A list of usernames the player has previously used.
-    pub past_usernames: Option<Vec<String>>,
+    pub past_usernames: Vec<String>,
     /// Whether the player is currently online.
     pub online: bool,
     /// The date the player registered on the server.
@@ -48,13 +48,13 @@ pub struct PlayerProfileResponse {
     /// The date and time the player was last seen on the server.
     pub last_seen: Option<String>,
     /// The name of the player's current rank.
-    pub rank_name: Option<String>,
+    pub rank_name: String,
     /// The player's language code (e.g. "en").
     pub language_code: Option<String>,
     /// The total number of seconds the player has played on the server.
     pub played_time_seconds: u32,
     /// The type of client the player is using (e.g. Java, Bedrock).
-    pub client_type: Option<ClientType>,
+    pub client_type: ClientType,
     /// The player's current location in the world, if available.
     pub location: Option<PlayerLocation>,
 }
