@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     error::{AppError, AppResult},
     state::{AppState, OnlinePlayersState},
@@ -21,6 +23,7 @@ pub struct TrayApp {
     quit_item: MenuItem,
     tray_icon: Option<TrayIcon>,
     state: AppState,
+    username_menu_item_map: HashMap<tray_icon::menu::MenuId, String>,
 }
 
 impl TrayApp {
@@ -58,6 +61,7 @@ impl TrayApp {
             quit_item,
             tray_icon: None,
             state: initial_state,
+            username_menu_item_map: HashMap::new(),
         };
 
         tray_app.refresh_players_submenus();
@@ -88,6 +92,10 @@ impl TrayApp {
         event.id == self.quit_item.id()
     }
 
+    pub fn is_profile_click_event(&self, event: &MenuEvent) -> Option<String> {
+        self.username_menu_item_map.get(event.id()).cloned()
+    }
+
     pub fn close(&mut self) {
         self.tray_icon.take();
     }
@@ -109,12 +117,14 @@ impl TrayApp {
     fn clear_players_submenus(&mut self) {
         while self.players_submenu.remove_at(0).is_some() {}
         while self.fave_players_submenu.remove_at(0).is_some() {}
+
+        self.username_menu_item_map.drain();
     }
 
     fn refresh_players_submenus(&mut self) {
         self.clear_players_submenus();
 
-        let mut player_names = match self.state.online_players() {
+        let mut usernames = match self.state.online_players() {
             OnlinePlayersState::Loaded(names) => names,
             _ => {
                 self.append_players_placeholder();
@@ -122,15 +132,21 @@ impl TrayApp {
             }
         };
 
-        player_names.sort_unstable_by_key(|name| name.to_ascii_lowercase());
+        usernames.sort_unstable_by_key(|name| name.to_ascii_lowercase());
 
-        for player_name in player_names {
-            let item = MenuItem::new(&player_name, false, None);
+        for username in usernames {
+            let item = MenuItem::new(&username, true, None);
             let _ = self.players_submenu.append(&item);
 
-            if self.state.config.favorite_players.contains(&player_name) {
-                let item = MenuItem::new(&player_name, false, None);
+            self.username_menu_item_map
+                .insert(item.id().clone(), username.clone());
+
+            if self.state.config.favorite_players.contains(&username) {
+                let item = MenuItem::new(&username, true, None);
                 let _ = self.fave_players_submenu.append(&item);
+
+                self.username_menu_item_map
+                    .insert(item.id().clone(), username);
             }
         }
     }

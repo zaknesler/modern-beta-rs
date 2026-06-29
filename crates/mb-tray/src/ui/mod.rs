@@ -22,7 +22,10 @@ pub fn run(setup: impl FnOnce(&mut App) + 'static) {
         });
 }
 
-pub fn open_profile_window(cx: &mut App) -> gpui::Result<AnyWindowHandle> {
+pub fn open_profile_window(
+    cx: &mut App,
+    username: Option<String>,
+) -> gpui::Result<AnyWindowHandle> {
     let bounds = Bounds::centered(None, size(px(480.), px(360.0)), cx);
 
     let handle = cx.open_window(
@@ -35,7 +38,7 @@ pub fn open_profile_window(cx: &mut App) -> gpui::Result<AnyWindowHandle> {
             ..Default::default()
         },
         |window, cx| {
-            let view = views::search::ProfileSearchView::view(window, cx);
+            let view = views::search::ProfileSearchView::view(window, cx, username);
             cx.new(|cx| Root::new(view, window, cx))
         },
     )?;

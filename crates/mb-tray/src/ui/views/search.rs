@@ -23,14 +23,14 @@ pub struct ProfileSearchView {
 }
 
 impl ProfileSearchView {
-    pub fn view(window: &mut Window, cx: &mut App) -> Entity<Self> {
-        cx.new(|cx| Self::new(window, cx))
+    pub fn view(window: &mut Window, cx: &mut App, username: Option<String>) -> Entity<Self> {
+        cx.new(|cx| Self::new(window, cx, username))
     }
 
-    fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
+    fn new(window: &mut Window, cx: &mut Context<Self>, username: Option<String>) -> Self {
         let input = cx.new(|cx| {
             InputState::new(window, cx)
-                .default_value("")
+                .default_value(username.unwrap_or_default())
                 .placeholder("Enter username...")
         });
 

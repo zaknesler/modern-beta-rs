@@ -68,9 +68,13 @@ fn run_tray_app(
 
             while let Ok(event) = tray_icon::menu::MenuEvent::receiver().try_recv() {
                 if tray_app.is_lookup_event(&event) {
-                    if let Err(err) = cx.update(|cx| window_manager.open_or_focus_profile(cx)) {
-                        error!(error = %err, "failed to open or focus lookup window");
-                    }
+                    let _ = cx.update(|cx| window_manager.open_or_focus_profile(cx, None));
+                    continue;
+                }
+
+                if let Some(username) = tray_app.is_profile_click_event(&event) {
+                    let _ =
+                        cx.update(|cx| window_manager.open_or_focus_profile(cx, Some(username)));
                     continue;
                 }
 
