@@ -1,7 +1,7 @@
 use crate::ui::client::ApiClient;
-use gpui::{App, ClickEvent, Context, Entity, Window, div, prelude::*, px, rems, rgb};
+use gpui::{App, ClickEvent, Context, Entity, Window, div, prelude::*, px, rems};
 use gpui_component::{
-    Sizable, StyledExt as _,
+    ActiveTheme as _, Sizable, StyledExt as _,
     alert::Alert,
     button::*,
     input::{Input, InputState},
@@ -87,7 +87,7 @@ impl ProfileSearchView {
         .detach();
     }
 
-    fn status(&self) -> impl IntoElement {
+    fn status(&self, cx: &mut Context<Self>) -> impl IntoElement {
         match &self.state {
             SearchState::Idle => div(),
             SearchState::Loading => div()
@@ -116,9 +116,9 @@ impl ProfileSearchView {
                             .gap_4()
                             .p_4()
                             .border_1()
-                            .border_color(rgb(0xc2c2c2))
+                            .border_color(cx.theme().sidebar_border)
                             .rounded_xl()
-                            .bg(rgb(0xf8f8f8))
+                            .bg(cx.theme().sidebar)
                             .items_center()
                             .overflow_hidden()
                             .child(
@@ -168,6 +168,6 @@ impl Render for ProfileSearchView {
                             .on_click(cx.listener(Self::on_submit)),
                     ),
             )
-            .child(self.status())
+            .child(self.status(cx))
     }
 }
