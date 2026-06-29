@@ -3,10 +3,9 @@ name = "modern-beta-tray"
 version = { workspace = true }
 edition = { workspace = true }
 
-[package.metadata.bundle]
+[package.metadata.bundle.bin.mb-tray]
 name = "Modern Beta Tray"
 identifier = "dev.nesler.modern-beta-tray"
-version = "0.0.0"
 
 [dependencies]
 modern-beta-api = { path = "../mb-api" }
