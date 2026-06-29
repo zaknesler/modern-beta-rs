@@ -66,17 +66,16 @@ impl ProfileSearchView {
         self.state = SearchState::Loading;
         cx.notify();
 
-        let request =
-            gpui_tokio::Tokio::spawn(
-                cx,
-                async move { client.get_player_profile(&username).await },
-            );
-
         cx.spawn(async move |this, cx| {
-            let outcome = request.await;
+            let response =
+                gpui_tokio::Tokio::spawn(
+                    cx,
+                    async move { client.get_player_profile(&username).await },
+                )
+                .await;
 
             this.update(cx, |view, cx| {
-                view.state = match outcome {
+                view.state = match response {
                     Ok(Ok(profile)) => SearchState::Loaded(profile),
                     Ok(Err(api_err)) => SearchState::Error(api_err.to_string()),
                     Err(join_err) => SearchState::Error(join_err.to_string()),
