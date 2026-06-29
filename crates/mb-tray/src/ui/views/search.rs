@@ -1,5 +1,5 @@
 use crate::ui::client::ApiClient;
-use gpui::{App, ClickEvent, Context, Entity, Task, Window, div, prelude::*, px};
+use gpui::{App, ClickEvent, Context, Entity, Window, div, prelude::*, px};
 use gpui_component::{
     Sizable, StyledExt as _,
     alert::Alert,
@@ -19,7 +19,6 @@ enum SearchState {
 pub struct ProfileSearchView {
     input: Entity<InputState>,
     state: SearchState,
-    task: Option<Task<()>>,
 }
 
 impl ProfileSearchView {
@@ -37,7 +36,6 @@ impl ProfileSearchView {
         let mut view = Self {
             input,
             state: SearchState::Idle,
-            task: None,
         };
 
         if username.is_some() {
@@ -74,7 +72,7 @@ impl ProfileSearchView {
                 async move { client.get_player_profile(&username).await },
             );
 
-        self.task = Some(cx.spawn(async move |this, cx| {
+        cx.spawn(async move |this, cx| {
             let outcome = request.await;
 
             this.update(cx, |view, cx| {
@@ -86,7 +84,8 @@ impl ProfileSearchView {
                 cx.notify();
             })
             .ok();
-        }));
+        })
+        .detach();
     }
 
     fn status(&self) -> impl IntoElement {
