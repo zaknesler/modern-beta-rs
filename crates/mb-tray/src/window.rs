@@ -1,10 +1,11 @@
 use crate::ui;
-use gpui::{AnyWindowHandle, App};
+use crate::ui::views::search::ProfileSearchView;
+use gpui::{AnyWindowHandle, App, Entity};
 
 #[derive(Default)]
 struct ProfileLookupWindow {
     handle: Option<AnyWindowHandle>,
-    username: Option<String>,
+    view: Option<Entity<ProfileSearchView>>,
 }
 
 #[derive(Default)]
@@ -21,23 +22,27 @@ impl WindowManager {
         // Reuse window if it's already open
         if let ProfileLookupWindow {
             handle: Some(handle),
-            ..
+            view: Some(ref view),
         } = self.lookup_window
         {
-            cx.activate(true);
-
             if handle
-                .update(cx, |_, window, _| window.activate_window())
+                .update(cx, |_, window, cx| {
+                    if let Some(username) = username.clone() {
+                        view.update(cx, |v, cx| v.set_username(username, window, cx));
+                    }
+                    window.activate_window();
+                })
                 .is_ok()
             {
+                cx.activate(true);
                 return Ok(());
             }
         }
 
-        let handle = ui::open_profile_window(cx, username.clone())?;
+        let (handle, view) = ui::open_profile_window(cx, username)?;
         self.lookup_window = ProfileLookupWindow {
             handle: Some(handle),
-            username,
+            view: Some(view),
         };
 
         Ok(())

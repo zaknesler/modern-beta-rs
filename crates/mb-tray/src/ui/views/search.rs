@@ -30,18 +30,34 @@ impl ProfileSearchView {
     fn new(window: &mut Window, cx: &mut Context<Self>, username: Option<String>) -> Self {
         let input = cx.new(|cx| {
             InputState::new(window, cx)
-                .default_value(username.unwrap_or_default())
+                .default_value(username.clone().unwrap_or_default())
                 .placeholder("Enter username...")
         });
 
-        Self {
+        let mut view = Self {
             input,
             state: SearchState::Idle,
             task: None,
+        };
+
+        if username.is_some() {
+            view.search(cx);
         }
+
+        view
     }
 
-    fn on_search(&mut self, _: &ClickEvent, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn set_username(&mut self, username: String, window: &mut Window, cx: &mut Context<Self>) {
+        self.input
+            .update(cx, |input, cx| input.set_value(username, window, cx));
+        self.search(cx);
+    }
+
+    fn on_submit(&mut self, _: &ClickEvent, _: &mut Window, cx: &mut Context<Self>) {
+        self.search(cx);
+    }
+
+    fn search(&mut self, cx: &mut Context<Self>) {
         let username = self.input.read(cx).value().trim().to_string();
         if username.is_empty() {
             return;
@@ -123,7 +139,7 @@ impl Render for ProfileSearchView {
                         Button::new("ok")
                             .primary()
                             .label("Search")
-                            .on_click(cx.listener(Self::on_search)),
+                            .on_click(cx.listener(Self::on_submit)),
                     ),
             )
             .child(self.status())

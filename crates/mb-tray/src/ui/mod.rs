@@ -1,5 +1,5 @@
 use gpui::{
-    AnyWindowHandle, App, Bounds, QuitMode, TitlebarOptions, WindowBounds, WindowOptions,
+    AnyWindowHandle, App, Bounds, Entity, QuitMode, TitlebarOptions, WindowBounds, WindowOptions,
     prelude::*, px, size,
 };
 use gpui_component::Root;
@@ -25,9 +25,10 @@ pub fn run(setup: impl FnOnce(&mut App) + 'static) {
 pub fn open_profile_window(
     cx: &mut App,
     username: Option<String>,
-) -> gpui::Result<AnyWindowHandle> {
+) -> gpui::Result<(AnyWindowHandle, Entity<views::search::ProfileSearchView>)> {
     let bounds = Bounds::centered(None, size(px(480.), px(360.0)), cx);
 
+    let mut search_view = None;
     let handle = cx.open_window(
         WindowOptions {
             window_bounds: Some(WindowBounds::Windowed(bounds)),
@@ -39,6 +40,7 @@ pub fn open_profile_window(
         },
         |window, cx| {
             let view = views::search::ProfileSearchView::view(window, cx, username);
+            search_view = Some(view.clone());
             cx.new(|cx| Root::new(view, window, cx))
         },
     )?;
@@ -46,5 +48,5 @@ pub fn open_profile_window(
     cx.activate(true);
     handle.update(cx, |_, window, _| window.activate_window())?;
 
-    Ok(handle.into())
+    Ok((handle.into(), search_view.unwrap()))
 }
