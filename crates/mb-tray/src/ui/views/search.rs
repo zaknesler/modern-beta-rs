@@ -1,5 +1,5 @@
 use crate::ui::client::ApiClient;
-use gpui::{App, ClickEvent, Context, Entity, Window, div, prelude::*, px};
+use gpui::{App, ClickEvent, Context, Entity, Window, div, prelude::*, px, rems, rgb};
 use gpui_component::{
     Sizable, StyledExt as _,
     alert::Alert,
@@ -110,10 +110,38 @@ impl ProfileSearchView {
                     .flex()
                     .v_flex()
                     .gap_2()
-                    .child(gpui::img(format!("https://mc-heads.net/avatar/{uuid}.png")).size_24())
-                    .child(format!("{name}"))
-                    .child(format!("{online}"))
-                    .child(format!("rank: {rank}"))
+                    .child(
+                        div()
+                            .flex()
+                            .gap_4()
+                            .p_4()
+                            .border_1()
+                            .border_color(rgb(0xc2c2c2))
+                            .rounded_xl()
+                            .bg(rgb(0xf8f8f8))
+                            .items_center()
+                            .overflow_hidden()
+                            .child(
+                                gpui::img(format!("https://mc-heads.net/avatar/{uuid}.png"))
+                                    .size_16()
+                                    .rounded_lg()
+                                    .flex_shrink_0(),
+                            )
+                            .child(
+                                div()
+                                    .flex()
+                                    .flex_col()
+                                    .child(
+                                        div()
+                                            .text_lg()
+                                            .font_bold()
+                                            .child(format!("{name}"))
+                                            .line_height(rems(1.1)),
+                                    )
+                                    .child(format!("{rank}"))
+                                    .child(format!("{online}")),
+                            ),
+                    )
                     .child(format!("played: {hours}h"))
             }
         }
