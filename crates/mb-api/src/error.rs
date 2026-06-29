@@ -2,6 +2,9 @@ pub(crate) type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("Invalid API key.")]
+    InvalidApiKey,
+
     #[error("Request to {url} failed: {source}")]
     Request {
         url: String,

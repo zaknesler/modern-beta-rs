@@ -15,6 +15,15 @@ pub struct ClientConfig {
     pub world_name: String,
 }
 
+impl Default for ClientConfig {
+    fn default() -> Self {
+        Self {
+            api_key: "".into(),
+            world_name: "world".into(),
+        }
+    }
+}
+
 impl Client {
     pub fn new(config: ClientConfig) -> Result<Self> {
         let client = reqwest::Client::builder().build()?;
@@ -59,6 +68,10 @@ impl Client {
     where
         T: DeserializeOwned,
     {
+        if self.config.api_key.is_empty() {
+            return Err(Error::InvalidApiKey);
+        }
+
         let response = self
             .client
             .get(&url)
