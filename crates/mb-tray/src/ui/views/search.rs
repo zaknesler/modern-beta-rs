@@ -1,5 +1,8 @@
 use crate::ui::client::ApiClient;
-use gpui::{App, ClickEvent, Context, Entity, Window, div, prelude::*, px, rems};
+use gpui::{
+    App, ClickEvent, Context, Entity, FocusHandle, Focusable, KeyDownEvent, Window, div,
+    prelude::*, px, rems,
+};
 use gpui_component::{
     ActiveTheme as _, Sizable, StyledExt as _,
     alert::Alert,
@@ -19,6 +22,7 @@ enum SearchState {
 pub struct ProfileSearchView {
     input: Entity<InputState>,
     state: SearchState,
+    focus_handle: FocusHandle,
 }
 
 impl ProfileSearchView {
@@ -33,9 +37,13 @@ impl ProfileSearchView {
                 .placeholder("Enter username...")
         });
 
+        let focus_handle = input.read(cx).focus_handle(cx);
+        window.focus(&focus_handle, cx);
+
         let mut view = Self {
             input,
             state: SearchState::Idle,
+            focus_handle,
         };
 
         if username.is_some() {
@@ -51,8 +59,19 @@ impl ProfileSearchView {
         self.search(cx);
     }
 
-    fn on_submit(&mut self, _: &ClickEvent, _: &mut Window, cx: &mut Context<Self>) {
+    fn handle_submit(&mut self, _: &ClickEvent, _: &mut Window, cx: &mut Context<Self>) {
         self.search(cx);
+    }
+
+    fn handle_key_down(
+        &mut self,
+        event: &KeyDownEvent,
+        window: &mut Window,
+        _: &mut Context<Self>,
+    ) {
+        if event.keystroke.modifiers.secondary() && event.keystroke.key == "w" {
+            window.remove_window();
+        }
     }
 
     fn search(&mut self, cx: &mut Context<Self>) {
@@ -151,6 +170,7 @@ impl ProfileSearchView {
 impl Render for ProfileSearchView {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
+            .track_focus(&self.focus_handle)
             .v_flex()
             .gap_4()
             .paddings(px(32.))
@@ -165,9 +185,10 @@ impl Render for ProfileSearchView {
                         Button::new("ok")
                             .primary()
                             .label("Search")
-                            .on_click(cx.listener(Self::on_submit)),
+                            .on_click(cx.listener(Self::handle_submit)),
                     ),
             )
             .child(self.status(cx))
+            .on_key_down(cx.listener(Self::handle_key_down))
     }
 }
