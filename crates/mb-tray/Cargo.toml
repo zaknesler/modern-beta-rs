@@ -3,6 +3,10 @@ name = "modern-beta-tray"
 version = { workspace = true }
 edition = { workspace = true }
 
+[package.metadata.bundle.bin.mb-tray]
+name = "Modern Beta Tray"
+identifier = "dev.nesler.modern-beta-tray"
+
 [dependencies]
 modern-beta-api = { path = "../mb-api" }
 figment = { version = "0.10.19", features = ["toml"] }

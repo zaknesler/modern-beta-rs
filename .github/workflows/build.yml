@@ -4,6 +4,7 @@ on: [workflow_dispatch, workflow_call, pull_request]
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
@@ -11,30 +12,21 @@ jobs:
     strategy:
       matrix:
         include:
-          # - name: x86_64-linux-gnu
-          #   runner: ubuntu-latest
-          #   target: x86_64-unknown-linux-gnu
-          #   command: cargo
-          # - name: aarch64-linux-gnu
-          #   runner: ubuntu-latest
-          #   target: aarch64-unknown-linux-gnu
-          #   command: cross
-          # - name: armv7-linux-gnueabihf
-          #   runner: ubuntu-latest
-          #   target: armv7-unknown-linux-gnueabihf
-          #   command: cross
-          - name: x86_64-windows
+          - name: linux-x86_64-gnu
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - name: linux-aarch64-gnu
+            runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          - name: windows-x86_64-msvc
             runner: windows-latest
             target: x86_64-pc-windows-msvc
-            command: cargo
-          # - name: aarch64-windows
-          #   runner: windows-latest
-          #   target: aarch64-pc-windows-msvc
-          #   command: cargo
-          - name: aarch64-macos
+          - name: windows-aarch64-msvc
+            runner: windows-latest
+            target: aarch64-pc-windows-msvc
+          - name: macos-aarch64
             runner: macos-latest
             target: aarch64-apple-darwin
-            command: cargo
     steps:
       - uses: actions/checkout@v6
 
@@ -46,37 +38,51 @@ jobs:
       - name: Configure Rust cache
         uses: Swatinem/rust-cache@v2
 
+      - name: Install Linux deps
+        if: startsWith(matrix.runner, 'ubuntu-')
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libxdo-dev
+
       - name: Install cargo-binstall
-        shell: bash
+        if: startsWith(matrix.runner, 'macos-')
         run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 
-      - run: cargo binstall --no-confirm --force cross
-        if: matrix.command == 'cross'
+      - name: Install cargo-bundle
+        if: startsWith(matrix.runner, 'macos-')
+        run: cargo binstall --no-confirm --force cargo-bundle
 
-      - name: Install Linux deps
-        if: matrix.runner == 'ubuntu-latest' && matrix.command == 'cargo'
-        run: sudo apt-get update && sudo apt-get install -y libglib2.0-dev
+      - name: Build Linux/Windows binary
+        if: ${{ !startsWith(matrix.runner, 'macos-') }}
+        run: cargo build --verbose --locked --release --target ${{ matrix.target }}
 
-      - run: ${{ matrix.command }} build --verbose --locked --release --target ${{ matrix.target }}
+      - name: Build & bundle macOS app
+        if: startsWith(matrix.runner, 'macos-')
+        run: |
+          cargo bundle --release --target ${{ matrix.target }} --package modern-beta-tray --bin mb-tray
+          codesign --force --deep --sign - "target/${{ matrix.target }}/release/bundle/osx/Modern Beta Tray.app"
 
       - name: Prepare binary
         shell: bash
         run: |
+          # Make output directory
+          mkdir "${GITHUB_WORKSPACE}/_artifacts"
+
+          # Bundle macOS app
+          if [[ "${{ matrix.runner }}" == macos-* ]]; then
+            APP_PATH="target/${{ matrix.target }}/release/bundle/osx/Modern Beta Tray.app"
+            APP_ZIP="${GITHUB_WORKSPACE}/_artifacts/mb-tray-${{ matrix.name }}.app.zip"
+
+            ditto -c -k --sequesterRsrc --keepParent "${APP_PATH}" "${APP_ZIP}"
+            exit 0
+          fi
+
           BIN_SUFFIX=""
           if [[ "${{ matrix.runner }}" == "windows-latest" ]]; then
             BIN_SUFFIX=".exe"
           fi
 
-          # The built binary output location
+          # Move the built binary to the artifacts directory
           BIN_OUTPUT="target/${{ matrix.target }}/release/mb-tray${BIN_SUFFIX}"
-
-          # Define a better name for the final binary
           BIN_FILENAME="mb-tray-${{ matrix.name }}${BIN_SUFFIX}"
-
-          # Make output directory
-          mkdir "${GITHUB_WORKSPACE}/_artifacts"
-
-          # Move the built binary where you want it
           mv "${BIN_OUTPUT}" "${GITHUB_WORKSPACE}/_artifacts/${BIN_FILENAME}"
 
       - uses: actions/upload-artifact@v7
