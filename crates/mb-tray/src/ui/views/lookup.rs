@@ -18,13 +18,13 @@ enum SearchState {
     Error(String),
 }
 
-pub struct ProfileSearchView {
+pub struct ProfileLookupView {
     input: Entity<InputState>,
     state: SearchState,
     focus_handle: FocusHandle,
 }
 
-impl ProfileSearchView {
+impl ProfileLookupView {
     pub fn view(window: &mut Window, cx: &mut App, username: Option<String>) -> Entity<Self> {
         cx.new(|cx| Self::new(window, cx, username))
     }
@@ -159,7 +159,7 @@ impl ProfileSearchView {
     }
 }
 
-impl Render for ProfileSearchView {
+impl Render for ProfileLookupView {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .on_action(cx.listener(Self::handle_close))

@@ -9,7 +9,6 @@ mod error;
 mod state;
 mod tray;
 mod ui;
-mod window;
 mod worker;
 
 use std::{sync::mpsc, time::Duration};
@@ -54,7 +53,7 @@ fn run_tray_app(
     let (tx, rx) = mpsc::channel::<state::AppState>();
     worker::Worker::new(shared_state, tx).spawn();
 
-    let mut window_manager = window::WindowManager::default();
+    let mut window_manager = ui::window::WindowManager::default();
 
     app.spawn(async move |cx| {
         loop {
@@ -68,13 +67,12 @@ fn run_tray_app(
 
             while let Ok(event) = tray_icon::menu::MenuEvent::receiver().try_recv() {
                 if tray_app.is_lookup_event(&event) {
-                    let _ = cx.update(|cx| window_manager.open_or_focus_profile(cx, None));
+                    let _ = cx.update(|cx| window_manager.open_or_focus_lookup(cx, None));
                     continue;
                 }
 
                 if let Some(username) = tray_app.is_profile_click_event(&event) {
-                    let _ =
-                        cx.update(|cx| window_manager.open_or_focus_profile(cx, Some(username)));
+                    let _ = cx.update(|cx| window_manager.open_or_focus_lookup(cx, Some(username)));
                     continue;
                 }
 
