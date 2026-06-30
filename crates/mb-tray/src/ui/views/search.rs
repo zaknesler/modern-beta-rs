@@ -1,7 +1,6 @@
-use crate::ui::client::ApiClient;
+use crate::ui::{CloseWindow, client::ApiClient};
 use gpui::{
-    App, ClickEvent, Context, Entity, FocusHandle, Focusable, KeyDownEvent, Window, div,
-    prelude::*, px, rems,
+    App, ClickEvent, Context, Entity, FocusHandle, Focusable, Window, div, prelude::*, px, rems,
 };
 use gpui_component::{
     ActiveTheme as _, Sizable, StyledExt as _,
@@ -63,15 +62,8 @@ impl ProfileSearchView {
         self.search(cx);
     }
 
-    fn handle_key_down(
-        &mut self,
-        event: &KeyDownEvent,
-        window: &mut Window,
-        _: &mut Context<Self>,
-    ) {
-        if event.keystroke.modifiers.secondary() && event.keystroke.key == "w" {
-            window.remove_window();
-        }
+    fn handle_close(&mut self, _: &CloseWindow, window: &mut Window, _: &mut Context<Self>) {
+        window.remove_window();
     }
 
     fn search(&mut self, cx: &mut Context<Self>) {
@@ -170,6 +162,7 @@ impl ProfileSearchView {
 impl Render for ProfileSearchView {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
+            .on_action(cx.listener(Self::handle_close))
             .track_focus(&self.focus_handle)
             .v_flex()
             .gap_4()
@@ -189,6 +182,5 @@ impl Render for ProfileSearchView {
                     ),
             )
             .child(self.status(cx))
-            .on_key_down(cx.listener(Self::handle_key_down))
     }
 }

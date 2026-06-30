@@ -1,12 +1,14 @@
 use gpui::{
-    AnyWindowHandle, App, Bounds, Entity, QuitMode, TitlebarOptions, WindowBounds, WindowOptions,
-    prelude::*, px, size,
+    AnyWindowHandle, App, Bounds, Entity, KeyBinding, QuitMode, TitlebarOptions, WindowBounds,
+    WindowOptions, actions, prelude::*, px, size,
 };
 use gpui_component::Root;
 
 pub mod client;
 pub mod macos;
 pub mod views;
+
+actions!(app, [CloseWindow]);
 
 pub fn run(setup: impl FnOnce(&mut App) + 'static) {
     let http_client = std::sync::Arc::new(reqwest_client::ReqwestClient::new());
@@ -15,6 +17,11 @@ pub fn run(setup: impl FnOnce(&mut App) + 'static) {
         .with_assets(gpui_component_assets::Assets)
         .with_http_client(http_client)
         .run(move |cx| {
+            cx.bind_keys([
+                KeyBinding::new("ctrl-w", CloseWindow, None),
+                KeyBinding::new("cmd-w", CloseWindow, None),
+            ]);
+
             macos::configure_activation_policy();
             cx.set_quit_mode(QuitMode::Explicit);
             gpui_component::init(cx);
